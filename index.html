@@ -7,81 +7,106 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         /* 🎨 GLOBAL STYLES & DARK THEME */
         :root {
-            --bg-body: #121212;
-            --bg-card: #1e1e1e;
+            --bg-body: #121212; 
+            --bg-card: rgba(30, 30, 30, 0.6);
             --bg-input: #2a2a2a;
-            --text-primary: #e0e0e0;
-            --text-secondary: #aaaaaa;
-            --primary-accent: #3498db; 
-            --primary-hover: #2980b9;
-            --audio-accent: #9b59b6; /* Purple for audio */
-            --audio-hover: #8e44ad;
-            --success: #2ecc71;
-            --border: #333333;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --text-primary: #e0e0e0; --text-secondary: #aaaaaa;
+            --primary-accent: #3498db; --primary-hover: #2980b9;
+            --audio-accent: #9b59b6; --audio-hover: #8e44ad;
+            --success: #2ecc71; --whatsapp: #25D366; --border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             --font-family: 'Inter', sans-serif;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-family); background-color: var(--bg-body); color: var(--text-primary); line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; 
+               background-image: radial-gradient(circle at top right, rgba(52, 152, 219, 0.1), transparent 400px); }
 
-        body { font-family: var(--font-family); background-color: var(--bg-body); color: var(--text-primary); line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
-
-        /* HEADER & LAYOUT */
-        .header { background-color: var(--bg-card); padding: 1rem 2rem; border-bottom: 1px solid var(--border); box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; }
+        .header { background-color: var(--bg-card); backdrop-filter: blur(10px); padding: 1rem 2rem; border-bottom: 1px solid var(--border); box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
         .header h1 { font-size: 1.5rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; }
         .header h1 span { color: var(--primary-accent); }
         .main-container { flex: 1; display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; padding: 2rem; max-width: 1600px; margin: 0 auto; width: 100%; }
 
-        /* INPUT PANEL */
-        .input-panel { background-color: var(--bg-card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.5rem; height: fit-content; position: sticky; top: 2rem; }
+        .input-panel, .result-card { 
+            background-color: var(--bg-card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: 2rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+        }
+        .result-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5); border-color: rgba(52, 152, 219, 0.3); }
+        
+        .input-panel { display: flex; flex-direction: column; gap: 1.5rem; height: fit-content; position: sticky; top: 6rem; }
         .panel-title { font-size: 1.1rem; font-weight: 600; color: white; margin-bottom: 0.25rem; }
         
-        textarea { width: 100%; height: 200px; background-color: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; font-family: var(--font-family); font-size: 0.95rem; resize: vertical; margin-bottom: 10px; }
-        textarea:focus { outline: none; border-color: var(--primary-accent); }
+        textarea { width: 100%; height: 200px; background-color: rgba(42, 42, 42, 0.8); color: white; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; font-family: var(--font-family); font-size: 0.95rem; resize: vertical; margin-bottom: 10px; transition: 0.3s; }
+        textarea:focus { outline: none; border-color: var(--primary-accent); background-color: rgba(42, 42, 42, 1); box-shadow: 0 0 10px rgba(52, 152, 219, 0.2); }
 
-        /* AUDIO UPLOAD BOX */
-        .audio-upload-box { border: 2px dashed var(--border); border-radius: 8px; padding: 1.5rem; text-align: center; background-color: var(--bg-input); transition: border-color 0.3s; }
-        .audio-upload-box:hover { border-color: var(--audio-accent); }
+        .audio-upload-box { border: 2px dashed var(--border); border-radius: 8px; padding: 1.5rem; text-align: center; background-color: rgba(42, 42, 42, 0.6); transition: all 0.3s; }
+        .audio-upload-box:hover { border-color: var(--audio-accent); background-color: rgba(42, 42, 42, 0.9); }
         input[type="file"] { display: none; }
         .upload-label { cursor: pointer; color: var(--text-primary); display: flex; flex-direction: column; align-items: center; gap: 10px; font-weight: 500; }
         .upload-label i { font-size: 2rem; color: var(--audio-accent); }
         .file-name { margin-top: 10px; font-size: 0.85rem; color: var(--success); font-weight: bold; }
 
-        /* BUTTONS */
-        .action-btn { width: 100%; padding: 1rem; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .action-btn { width: 100%; padding: 1rem; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-text { background-color: var(--primary-accent); }
-        .btn-text:hover { background-color: var(--primary-hover); }
+        .btn-text:hover { background-color: var(--primary-hover); transform: scale(1.02); }
         .btn-audio { background-color: var(--audio-accent); margin-top: 10px; }
-        .btn-audio:hover { background-color: var(--audio-hover); }
-        .action-btn:disabled { background-color: #555; cursor: not-allowed; }
+        .btn-audio:hover { background-color: var(--audio-hover); transform: scale(1.02); }
+        .action-btn:disabled { background-color: #555; cursor: not-allowed; transform: none; }
 
-        /* OUTPUT PANEL */
+        .action-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn-export { background-color: #e74c3c; flex: 1; }
+        .btn-export:hover { background-color: #c0392b; transform: translateY(-2px); }
+        .btn-read { background-color: var(--primary-accent); flex: 1; }
+        .btn-read:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .btn-whatsapp { background-color: var(--whatsapp); flex: 1; }
+        .btn-whatsapp:hover { background-color: #1DA851; transform: translateY(-2px); }
+
         .output-panel { display: flex; flex-direction: column; gap: 1.5rem; }
-        #loadingState { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; z-index: 1000; flex-direction: column; justify-content: center; align-items: center; gap: 1rem; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        #loadingState { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); color: white; z-index: 1000; flex-direction: column; justify-content: center; align-items: center; gap: 1rem; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--primary-accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         #resultsArea { display: none; flex-direction: column; gap: 1.5rem; }
-        .result-card { background-color: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); transition: transform 0.2s; }
-        .result-card:hover { transform: translateY(-3px); border-color: #444; }
-        .result-card h3 { font-size: 1rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        #pdfCaptureArea { display: flex; flex-direction: column; gap: 1.5rem; background-color: transparent; padding: 5px; border-radius: 8px;}
+
+        .result-card h3 { font-size: 1rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
         .result-card h3 i { color: var(--primary-accent); font-size: 1.1rem; }
-        #summaryText { font-size: 1.05rem; color: white; line-height: 1.7; }
+        #summaryText { font-size: 1.05rem; color: white; line-height: 1.8; }
+        
+        /* 🔥 NEW: Transcription Box Style */
+        #transcriptionText { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7; max-height: 200px; overflow-y: auto; padding-right: 10px; font-style: italic; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border-left: 3px solid var(--audio-accent); }
+        
+        .highlight { background-color: rgba(52, 152, 219, 0.15); color: var(--primary-accent); font-weight: bold; padding: 2px 6px; border-radius: 4px; border-bottom: 2px solid var(--primary-accent); }
 
-        .points-list { list-style: none; padding-left: 0.5rem; }
-        .points-list li { position: relative; padding-left: 25px; margin-bottom: 0.75rem; color: var(--text-primary); }
-        .points-list li::before { content: "\f058"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; left: 0; top: 3px; color: var(--success); font-size: 0.9rem; }
+        /* 3D Flashcards */
+        .flashcard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+        .flashcard { background-color: transparent; height: 160px; perspective: 1000px; cursor: pointer; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
+        .flashcard:hover .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        .flashcard-front { background-color: rgba(42, 42, 42, 0.8); color: var(--primary-accent); }
+        .flashcard-front i { font-size: 2.5rem; margin-bottom: 15px; opacity: 0.8; }
+        .flashcard-front h4 { color: white; font-size: 1.1rem; margin-bottom: 5px; }
+        .flashcard-front .flip-text { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+        .flashcard-back { background-color: var(--primary-accent); color: white; transform: rotateY(180deg); font-size: 0.95rem; font-weight: 500; overflow-y: auto; }
 
-        .action-list { display: flex; flex-direction: column; gap: 0.75rem; }
-        .action-item { display: flex; align-items: flex-start; gap: 12px; background-color: var(--bg-input); padding: 1rem; border-radius: 8px; border: 1px solid transparent; transition: border-color 0.2s; }
-        .action-item:hover { border-color: #444; }
-        .action-item input[type="checkbox"] { margin-top: 4px; width: 16px; height: 16px; accent-color: var(--primary-accent); cursor: pointer; }
-        .action-item span { color: white; }
+        /* Smart Timeline */
+        .timeline { position: relative; padding-left: 25px; border-left: 3px solid var(--border); margin-left: 15px; display: flex; flex-direction: column; gap: 20px; }
+        .timeline-item { position: relative; }
+        .timeline-dot { position: absolute; left: -34px; top: 0px; width: 15px; height: 15px; background-color: var(--success); border-radius: 50%; box-shadow: 0 0 15px var(--success); border: 3px solid #1e1e1e; }
+        .timeline-content { background-color: rgba(42, 42, 42, 0.6); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); transition: all 0.3s; }
+        .timeline-content:hover { border-color: var(--success); background-color: rgba(42, 42, 42, 0.9); transform: translateX(5px); }
+        .timeline-content h4 { color: var(--success); font-size: 0.85rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .timeline-content p { color: white; font-size: 1rem; }
 
-        #outputPlaceholder { background-color: var(--bg-card); border: 2px dashed var(--border); border-radius: 12px; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; text-align: center; height: 400px; }
+        #outputPlaceholder { background-color: var(--bg-card); border: 2px dashed var(--border); border-radius: 12px; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; text-align: center; height: 400px; backdrop-filter: blur(10px); }
         #outputPlaceholder i { font-size: 3rem; color: #444; }
     </style>
 </head>
@@ -95,15 +120,14 @@
 
     <header class="header">
         <h1><i class="fas fa-brain"></i> Lecture<span>Summarizer</span> Pro</h1>
-        <div style="font-size: 0.85rem; color: var(--success); background: rgba(46, 204, 113, 0.1); padding: 5px 12px; border-radius: 20px;">
-            <i class="fas fa-check-circle"></i> Whisper API & Ollama Active
+        <div style="font-size: 0.85rem; color: var(--success); background: rgba(46, 204, 113, 0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(46, 204, 113, 0.3);">
+            <i class="fas fa-check-circle"></i> Whisper API & Llama 3 Active
         </div>
     </header>
 
     <main class="main-container">
         
         <aside class="input-panel">
-            
             <div>
                 <p class="panel-title">Option 1: Paste Text</p>
                 <textarea id="inputText" placeholder="Paste lecture transcript here..."></textarea>
@@ -128,11 +152,9 @@
                     <i class="fas fa-headphones"></i> Summarize Audio
                 </button>
             </div>
-
         </aside>
 
         <section class="output-panel">
-            
             <div id="outputPlaceholder">
                 <i class="fas fa-file-signature"></i>
                 <p style="font-size: 1.2rem; font-weight: 600; color: white;">Your Notes Will Appear Here</p>
@@ -140,26 +162,47 @@
             </div>
 
             <div id="resultsArea">
-                <div class="result-card">
-                    <h3><i class="fas fa-quote-left"></i> Concise Summary</h3>
-                    <p id="summaryText"></p>
+                
+                <div class="action-row">
+                    <button class="action-btn btn-read" id="readBtn" onclick="toggleReadAloud()">
+                        <i class="fas fa-volume-up"></i> Read Notes
+                    </button>
+                    <button class="action-btn btn-whatsapp" onclick="shareToWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> Share
+                    </button>
+                    <button class="action-btn btn-export" onclick="downloadPDF()">
+                        <i class="fas fa-file-pdf"></i> Save PDF
+                    </button>
                 </div>
-                <div class="result-card">
-                    <h3><i class="fas fa-list-ul"></i> Key Points Extraction</h3>
-                    <ul class="points-list" id="pointsList"></ul>
-                </div>
-                <div class="result-card">
-                    <h3><i class="fas fa-clipboard-list"></i> Action Items & Deadlines</h3>
-                    <div class="action-list" id="actionsList"></div>
+
+                <div id="pdfCaptureArea">
+                    
+                    <div class="result-card" id="transcriptionCard" style="display: none; border-color: rgba(155, 89, 182, 0.4);">
+                        <h3><i class="fas fa-align-left" style="color: var(--audio-accent);"></i> Full Transcription</h3>
+                        <div id="transcriptionText"></div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3><i class="fas fa-quote-left"></i> Concise Summary</h3>
+                        <p id="summaryText"></p>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3><i class="fas fa-clone"></i> Interactive Flashcards</h3>
+                        <div class="flashcard-grid" id="pointsList"></div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3><i class="fas fa-tasks"></i> Study Tasks & Deadlines</h3>
+                        <div class="timeline" id="actionsList"></div>
+                    </div>
                 </div>
             </div>
-
         </section>
 
     </main>
 
     <script>
-        // File name update function
         function showFileName() {
             const fileInput = document.getElementById('audioInput');
             const fileNameDisplay = document.getElementById('fileNameDisplay');
@@ -170,13 +213,63 @@
             }
         }
 
-        // Unified function for Text and Audio
+        function highlightKeyTerms(text) {
+            const regex = /\b([A-Z]{2,}|[A-Za-z]{9,})\b/g;
+            return text.replace(regex, '<span class="highlight">$&</span>');
+        }
+
+        let isReading = false;
+        const synth = window.speechSynthesis;
+
+        function toggleReadAloud() {
+            const btn = document.getElementById('readBtn');
+            if (isReading) {
+                synth.cancel();
+                isReading = false;
+                btn.innerHTML = '<i class="fas fa-volume-up"></i> Read Notes';
+                btn.style.backgroundColor = 'var(--primary-accent)';
+            } else {
+                const textToRead = document.getElementById('summaryText').innerText;
+                if(textToRead && synth) {
+                    const utterance = new SpeechSynthesisUtterance(textToRead);
+                    utterance.rate = 0.9; 
+                    
+                    utterance.onend = () => {
+                        isReading = false;
+                        btn.innerHTML = '<i class="fas fa-volume-up"></i> Read Notes';
+                        btn.style.backgroundColor = 'var(--primary-accent)';
+                    };
+
+                    synth.speak(utterance);
+                    isReading = true;
+                    btn.innerHTML = '<i class="fas fa-stop"></i> Stop Reading';
+                    btn.style.backgroundColor = '#e67e22'; 
+                } else {
+                    alert("Text to speech is not supported in your browser.");
+                }
+            }
+        }
+
+        function shareToWhatsApp() {
+            const summary = document.getElementById('summaryText').innerText;
+            const timelineItems = document.querySelectorAll('.timeline-content p');
+            let tasksText = "";
+            timelineItems.forEach((item, index) => {
+                tasksText += `${index + 1}. ${item.innerText}\n`;
+            });
+
+            const textToShare = encodeURIComponent(`🧠 *Lecture Summarizer Pro*\n\n*Summary:*\n${summary}\n\n*Action Items:*\n${tasksText}\n_Generated via AI Vibe Coding Challenge!_ 🚀`);
+            window.open(`https://api.whatsapp.com/send?text=${textToShare}`, '_blank');
+        }
+
         async function processData(type) {
             const loadingState = document.getElementById('loadingState');
             const loadingText = document.getElementById('loadingText');
             const resultsArea = document.getElementById('resultsArea');
             const placeholder = document.getElementById('outputPlaceholder');
             
+            if(isReading) toggleReadAloud();
+
             let fetchUrl = '';
             let fetchOptions = {};
 
@@ -209,11 +302,10 @@
                 fetchUrl = 'http://localhost:3000/api/summarize-audio';
                 fetchOptions = {
                     method: 'POST',
-                    body: formData // Note: no 'Content-Type' header needed for FormData
+                    body: formData
                 };
             }
 
-            // Show UI Loading
             placeholder.style.display = 'none';
             resultsArea.style.display = 'none';
             loadingState.style.display = 'flex';
@@ -224,31 +316,55 @@
                 
                 if(data.error) throw new Error(data.error);
 
-                // Populate UI
-                document.getElementById('summaryText').innerText = data.summary || "Summary not found.";
+                // 🔥 NEW: Show Transcription only if it exists (i.e., Audio was processed)
+                const transCard = document.getElementById('transcriptionCard');
+                if (data.transcription) {
+                    document.getElementById('transcriptionText').innerText = `"${data.transcription}"`;
+                    transCard.style.display = 'block';
+                } else {
+                    transCard.style.display = 'none';
+                }
+
+                const rawSummary = data.summary || "Summary not found.";
+                document.getElementById('summaryText').innerHTML = highlightKeyTerms(rawSummary);
                 
                 const pointsList = document.getElementById('pointsList');
                 pointsList.innerHTML = '';
                 if (data.key_points && data.key_points.length > 0) {
-                    data.key_points.forEach(pt => {
-                        pointsList.innerHTML += `<li>${pt}</li>`;
+                    data.key_points.forEach((pt, index) => {
+                        pointsList.innerHTML += `
+                            <div class="flashcard">
+                                <div class="flashcard-inner">
+                                    <div class="flashcard-front">
+                                        <i class="fas fa-lightbulb"></i>
+                                        <h4>Key Concept ${index + 1}</h4>
+                                        <span class="flip-text">Hover to Reveal</span>
+                                    </div>
+                                    <div class="flashcard-back">
+                                        <p>${pt}</p>
+                                    </div>
+                                </div>
+                            </div>`;
                     });
                 } else {
-                    pointsList.innerHTML = `<li>No points extracted.</li>`;
+                    pointsList.innerHTML = `<p style="color: var(--text-secondary);">No points extracted.</p>`;
                 }
 
                 const actionsList = document.getElementById('actionsList');
                 actionsList.innerHTML = '';
                 if (data.action_items && data.action_items.length > 0) {
-                    data.action_items.forEach((item, i) => {
+                    data.action_items.forEach((item, index) => {
                         actionsList.innerHTML += `
-                            <div class="action-item">
-                                <input type="checkbox" id="act-${i}">
-                                <label for="act-${i}"><span>${item}</span></label>
+                            <div class="timeline-item">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-content">
+                                    <h4>Study Action ${index + 1}</h4>
+                                    <p>${item}</p>
+                                </div>
                             </div>`;
                     });
                 } else {
-                    actionsList.innerHTML = `<div class="action-item"><span>No action items.</span></div>`;
+                    actionsList.innerHTML = `<p style="color: var(--text-secondary);">No action items found.</p>`;
                 }
 
                 loadingState.style.display = 'none';
@@ -260,6 +376,72 @@
                 resultsArea.style.display = 'none';
                 alert("Error: " + error.message);
                 console.error(error);
+            }
+        }
+
+        window.jsPDF = window.jspdf.jsPDF;
+        
+        async function downloadPDF() {
+            const captureArea = document.getElementById('pdfCaptureArea');
+            const exportBtn = document.querySelector('.btn-export');
+            const originalContent = exportBtn.innerHTML;
+            
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            exportBtn.disabled = true;
+
+            try {
+                captureArea.style.backgroundColor = '#121212';
+                
+                const canvas = await html2canvas(captureArea, {
+                    scale: 2,
+                    backgroundColor: "#121212",
+                    logging: false,
+                    useCORS: true,
+                    onclone: (clonedDoc) => {
+                        const inners = clonedDoc.querySelectorAll('.flashcard-inner');
+                        inners.forEach(inner => inner.style.transform = 'none');
+                        
+                        const fronts = clonedDoc.querySelectorAll('.flashcard-front');
+                        fronts.forEach(front => front.style.display = 'none');
+                        
+                        const backs = clonedDoc.querySelectorAll('.flashcard-back');
+                        backs.forEach(back => {
+                            back.style.transform = 'none'; 
+                            back.style.position = 'relative'; 
+                            back.style.height = 'auto'; 
+                            back.style.minHeight = '160px';
+                        });
+                        
+                        const cards = clonedDoc.querySelectorAll('.flashcard');
+                        cards.forEach(card => card.style.height = 'auto');
+
+                        // 🔥 NEW: Expand transcription text box so it doesn't get cut off in PDF
+                        const transText = clonedDoc.getElementById('transcriptionText');
+                        if (transText) {
+                            transText.style.maxHeight = 'none';
+                            transText.style.overflowY = 'visible';
+                        }
+                    }
+                });
+                
+                captureArea.style.backgroundColor = 'transparent';
+                
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save('Lecture_Notes_Pro.pdf');
+                
+            } catch (error) {
+                console.error("PDF Export failed:", error);
+                alert("Failed to export PDF. Please try again.");
+            } finally {
+                exportBtn.innerHTML = originalContent;
+                exportBtn.disabled = false;
             }
         }
     </script>

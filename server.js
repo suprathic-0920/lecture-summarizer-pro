@@ -4,7 +4,7 @@ const FormData = require('form-data');
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const axios = require('axios'); // 🔥 NEW: Added axios to perfectly handle file uploads
+const axios = require('axios'); 
 
 const app = express();
 app.use(cors());
@@ -22,18 +22,19 @@ app.post('/api/summarize-text', async (req, res) => {
         return res.status(400).json({ error: "Text is required" });
     }
 
-    const prompt = `Analyze the following lecture transcript. Return a JSON object with strictly three keys: 'summary' (a brief paragraph), 'key_points' (an array of strings), and 'action_items' (an array of strings). Transcript: ${text}`;
+    const prompt = `You are an expert University Professor and Academic Summarizer. Your task is to analyze the following lecture transcript with maximum factual accuracy. Pay close attention to technical terms, core concepts, and the exact context. Do not make up information. Return a JSON object with STRICTLY three keys: 'summary' (A dense, highly accurate paragraph capturing the main thesis without fluff), 'key_points' (An array of the most critical factual statements and definitions), 'action_items' (An array of practical study tasks or deadlines based on the text). Transcript: ${text}`;
 
     try {
-        console.log("Processing text with Ollama...");
+        console.log("🧠 Processing text with Ollama (Llama 3)...");
         const response = await fetch('http://localhost:11434/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: 'phi3',
+                model: 'llama3', 
                 prompt: prompt,
                 stream: false,
-                format: 'json' 
+                format: 'json',
+                options: { temperature: 0.1 } 
             })
         });
 
@@ -63,39 +64,42 @@ app.post('/api/summarize-audio', upload.single('audio'), async (req, res) => {
 
         const API_KEY = process.env.GROQ_API_KEY; 
         
-        // 🔥 FIX APPLIED HERE: Using axios.post which correctly handles multipart boundaries
         const sttResponse = await axios.post('https://api.groq.com/openai/v1/audio/transcriptions', formData, {
             headers: {
                 'Authorization': `Bearer ${API_KEY}`,
-                ...formData.getHeaders() // Axios handles this perfectly
+                ...formData.getHeaders() 
             }
         });
 
-        // Axios automatically parses the JSON response into .data
         const transcribedText = sttResponse.data.text;
         console.log("📝 Transcribed Text:", transcribedText);
 
-        console.log("🧠 Processing transcribed text with Ollama...");
-        const prompt = `Analyze the following lecture transcript. Return a JSON object with strictly three keys: 'summary' (a brief paragraph), 'key_points' (an array of strings), and 'action_items' (an array of strings). Transcript: ${transcribedText}`;
+        console.log("🧠 Processing transcribed text with Ollama (Llama 3)...");
+        
+        const prompt = `You are an expert University Professor and Academic Summarizer. Your task is to analyze the following lecture transcript with maximum factual accuracy. Pay close attention to technical terms, core concepts, and the exact context. Do not make up information. Return a JSON object with STRICTLY three keys: 'summary' (A dense, highly accurate paragraph capturing the main thesis without fluff), 'key_points' (An array of the most critical factual statements and definitions), 'action_items' (An array of practical study tasks or deadlines based on the text). Transcript: ${transcribedText}`;
 
         const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: 'phi3',
+                model: 'llama3', 
                 prompt: prompt,
                 stream: false,
-                format: 'json'
+                format: 'json',
+                options: { temperature: 0.1 }
             })
         });
 
         const ollamaData = await ollamaResponse.json();
+        const parsedResponse = JSON.parse(ollamaData.response);
         
-        fs.unlinkSync(req.file.path); // Cleanup temp file
-        res.json(JSON.parse(ollamaData.response));
+        // 🔥 NEW: Add the raw transcription to the final response
+        parsedResponse.transcription = transcribedText;
+        
+        fs.unlinkSync(req.file.path); 
+        res.json(parsedResponse);
 
     } catch (error) {
-        // Detailed error logging
         if (error.response) {
             console.error("❌ Groq API Error:", error.response.status, error.response.data);
         } else {
