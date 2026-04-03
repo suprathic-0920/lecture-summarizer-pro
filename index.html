@@ -11,7 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        /* 🎨 GLOBAL STYLES & DARK THEME */
         :root {
             --bg-body: #121212; 
             --bg-card: rgba(30, 30, 30, 0.6);
@@ -22,6 +21,7 @@
             --success: #2ecc71; --whatsapp: #25D366; --border: rgba(255, 255, 255, 0.1);
             --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             --font-family: 'Inter', sans-serif;
+            --warning: #f39c12; --danger: #e74c3c;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -78,12 +78,125 @@
 
         .result-card h3 { font-size: 1rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
         .result-card h3 i { color: var(--primary-accent); font-size: 1.1rem; }
-        #summaryText { font-size: 1.05rem; color: white; line-height: 1.8; }
+        #summaryText { font-size: 1.05rem; color: white; line-height: 1.9; }
         
-        /* 🔥 NEW: Transcription Box Style */
         #transcriptionText { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7; max-height: 200px; overflow-y: auto; padding-right: 10px; font-style: italic; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border-left: 3px solid var(--audio-accent); }
         
         .highlight { background-color: rgba(52, 152, 219, 0.15); color: var(--primary-accent); font-weight: bold; padding: 2px 6px; border-radius: 4px; border-bottom: 2px solid var(--primary-accent); }
+
+        /* ─── Lecture Metadata Bar ─── */
+        .meta-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        .meta-card {
+            background: rgba(42, 42, 42, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 18px;
+            transition: all 0.3s;
+        }
+        .meta-card:hover {
+            border-color: rgba(52, 152, 219, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .meta-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .meta-card-header i {
+            font-size: 1rem;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .meta-card-header span {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        /* Difficulty Badge */
+        .difficulty-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .diff-beginner {
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        .diff-intermediate {
+            background: rgba(243, 156, 18, 0.15);
+            color: #f39c12;
+            border: 1px solid rgba(243, 156, 18, 0.3);
+        }
+        .diff-advanced {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        /* Tag pills for prerequisites & related topics */
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag-pill {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            border: 1px solid;
+            transition: all 0.2s;
+            cursor: default;
+        }
+        .tag-pill:hover {
+            transform: scale(1.05);
+        }
+        .tag-prereq {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f5c842;
+            border-color: rgba(243, 156, 18, 0.25);
+        }
+        .tag-related {
+            background: rgba(52, 152, 219, 0.1);
+            color: #5dade2;
+            border-color: rgba(52, 152, 219, 0.25);
+        }
+
+        /* Word count indicator */
+        .summary-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+        }
+        .word-count-badge {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            background: rgba(255,255,255,0.05);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
 
         /* 3D Flashcards */
         .flashcard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
@@ -108,6 +221,12 @@
 
         #outputPlaceholder { background-color: var(--bg-card); border: 2px dashed var(--border); border-radius: 12px; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; text-align: center; height: 400px; backdrop-filter: blur(10px); }
         #outputPlaceholder i { font-size: 3rem; color: #444; }
+
+        @media (max-width: 900px) {
+            .main-container { grid-template-columns: 1fr; }
+            .input-panel { position: static; }
+            .meta-bar { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -177,21 +296,59 @@
 
                 <div id="pdfCaptureArea">
                     
+                    <!-- Transcription (Audio only) -->
                     <div class="result-card" id="transcriptionCard" style="display: none; border-color: rgba(155, 89, 182, 0.4);">
                         <h3><i class="fas fa-align-left" style="color: var(--audio-accent);"></i> Full Transcription</h3>
                         <div id="transcriptionText"></div>
                     </div>
 
+                    <!-- ★ NEW: Lecture Metadata Bar -->
+                    <div class="result-card" id="metaCard">
+                        <h3><i class="fas fa-info-circle"></i> Lecture Insights</h3>
+                        <div class="meta-bar">
+                            <!-- Difficulty -->
+                            <div class="meta-card">
+                                <div class="meta-card-header">
+                                    <i class="fas fa-signal" style="color: var(--warning); background: rgba(243,156,18,0.15);"></i>
+                                    <span>Difficulty</span>
+                                </div>
+                                <div id="difficultyBadge"></div>
+                            </div>
+                            <!-- Prerequisites -->
+                            <div class="meta-card">
+                                <div class="meta-card-header">
+                                    <i class="fas fa-book-open" style="color: #f5c842; background: rgba(245,200,66,0.15);"></i>
+                                    <span>Prerequisites</span>
+                                </div>
+                                <div class="tag-list" id="prerequisitesList"></div>
+                            </div>
+                            <!-- Related Topics -->
+                            <div class="meta-card">
+                                <div class="meta-card-header">
+                                    <i class="fas fa-project-diagram" style="color: #5dade2; background: rgba(93,173,226,0.15);"></i>
+                                    <span>Explore Next</span>
+                                </div>
+                                <div class="tag-list" id="relatedTopicsList"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
                     <div class="result-card">
                         <h3><i class="fas fa-quote-left"></i> Concise Summary</h3>
                         <p id="summaryText"></p>
+                        <div class="summary-meta">
+                            <span class="word-count-badge" id="wordCountBadge"></span>
+                        </div>
                     </div>
                     
+                    <!-- Flashcards -->
                     <div class="result-card">
                         <h3><i class="fas fa-clone"></i> Interactive Flashcards</h3>
                         <div class="flashcard-grid" id="pointsList"></div>
                     </div>
                     
+                    <!-- Study Timeline -->
                     <div class="result-card">
                         <h3><i class="fas fa-tasks"></i> Study Tasks & Deadlines</h3>
                         <div class="timeline" id="actionsList"></div>
@@ -211,6 +368,27 @@
             } else {
                 fileNameDisplay.innerText = "";
             }
+        }
+
+        // ─── SAFE TEXT EXTRACTOR ───
+        // Ollama sometimes returns objects instead of strings
+        // e.g. {text: "...", detail: "..."} or {point: "...", explanation: "..."}
+        function toText(item) {
+            if (typeof item === 'string') return item;
+            if (item === null || item === undefined) return '';
+            if (typeof item === 'object') {
+                // Try common keys Ollama might use
+                const tryKeys = ['text', 'point', 'content', 'description', 'value', 'name', 'title', 'task', 'action', 'topic', 'item'];
+                for (const key of tryKeys) {
+                    if (item[key] && typeof item[key] === 'string') return item[key];
+                }
+                // Fallback: join all string values
+                const vals = Object.values(item).filter(v => typeof v === 'string');
+                if (vals.length > 0) return vals.join(' — ');
+                // Last resort
+                return JSON.stringify(item);
+            }
+            return String(item);
         }
 
         function highlightKeyTerms(text) {
@@ -233,13 +411,11 @@
                 if(textToRead && synth) {
                     const utterance = new SpeechSynthesisUtterance(textToRead);
                     utterance.rate = 0.9; 
-                    
                     utterance.onend = () => {
                         isReading = false;
                         btn.innerHTML = '<i class="fas fa-volume-up"></i> Read Notes';
                         btn.style.backgroundColor = 'var(--primary-accent)';
                     };
-
                     synth.speak(utterance);
                     isReading = true;
                     btn.innerHTML = '<i class="fas fa-stop"></i> Stop Reading';
@@ -257,9 +433,51 @@
             timelineItems.forEach((item, index) => {
                 tasksText += `${index + 1}. ${item.innerText}\n`;
             });
-
             const textToShare = encodeURIComponent(`🧠 *Lecture Summarizer Pro*\n\n*Summary:*\n${summary}\n\n*Action Items:*\n${tasksText}\n_Generated via AI Vibe Coding Challenge!_ 🚀`);
             window.open(`https://api.whatsapp.com/send?text=${textToShare}`, '_blank');
+        }
+
+        // ─── RENDER NEW METADATA FIELDS ───
+        function renderMetadata(data) {
+            // Difficulty Badge
+            const diffEl = document.getElementById('difficultyBadge');
+            const rawLevel = toText(data.difficulty_level) || 'Unknown';
+            const level = rawLevel.toLowerCase();
+            let diffClass = 'diff-beginner';
+            let diffIcon = 'fa-seedling';
+            if (level.includes('intermediate')) { diffClass = 'diff-intermediate'; diffIcon = 'fa-fire'; }
+            else if (level.includes('advanced')) { diffClass = 'diff-advanced'; diffIcon = 'fa-bolt'; }
+            diffEl.innerHTML = `<span class="difficulty-badge ${diffClass}"><i class="fas ${diffIcon}"></i> ${rawLevel}</span>`;
+
+            // Prerequisites
+            const prereqEl = document.getElementById('prerequisitesList');
+            prereqEl.innerHTML = '';
+            if (data.prerequisites && data.prerequisites.length > 0) {
+                data.prerequisites.forEach(item => {
+                    const text = toText(item);
+                    prereqEl.innerHTML += `<span class="tag-pill tag-prereq"><i class="fas fa-check" style="font-size:0.7rem;margin-right:4px;"></i>${text}</span>`;
+                });
+            } else {
+                prereqEl.innerHTML = `<span style="color:var(--text-secondary);font-size:0.85rem;">None identified</span>`;
+            }
+
+            // Related Topics
+            const relatedEl = document.getElementById('relatedTopicsList');
+            relatedEl.innerHTML = '';
+            if (data.related_topics && data.related_topics.length > 0) {
+                data.related_topics.forEach(item => {
+                    const text = toText(item);
+                    relatedEl.innerHTML += `<span class="tag-pill tag-related"><i class="fas fa-arrow-right" style="font-size:0.65rem;margin-right:4px;"></i>${text}</span>`;
+                });
+            } else {
+                relatedEl.innerHTML = `<span style="color:var(--text-secondary);font-size:0.85rem;">None identified</span>`;
+            }
+        }
+
+        // ─── WORD COUNT ───
+        function showWordCount(text) {
+            const count = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            document.getElementById('wordCountBadge').innerHTML = `<i class="fas fa-font" style="margin-right:4px;"></i> ${count} words`;
         }
 
         async function processData(type) {
@@ -279,7 +497,6 @@
                     alert("Please enter more text!");
                     return;
                 }
-                
                 loadingText.innerText = "Reading and summarizing text...";
                 fetchUrl = 'http://localhost:3000/api/summarize-text';
                 fetchOptions = {
@@ -294,11 +511,9 @@
                     alert("Please select an audio file first!");
                     return;
                 }
-                
                 loadingText.innerText = "Transcribing audio and generating notes... 🎙️";
                 const formData = new FormData();
                 formData.append('audio', fileInput.files[0]);
-
                 fetchUrl = 'http://localhost:3000/api/summarize-audio';
                 fetchOptions = {
                     method: 'POST',
@@ -316,7 +531,7 @@
                 
                 if(data.error) throw new Error(data.error);
 
-                // 🔥 NEW: Show Transcription only if it exists (i.e., Audio was processed)
+                // Transcription (Audio only)
                 const transCard = document.getElementById('transcriptionCard');
                 if (data.transcription) {
                     document.getElementById('transcriptionText').innerText = `"${data.transcription}"`;
@@ -325,13 +540,20 @@
                     transCard.style.display = 'none';
                 }
 
+                // ★ Render new metadata
+                renderMetadata(data);
+
+                // Summary with highlights + word count
                 const rawSummary = data.summary || "Summary not found.";
                 document.getElementById('summaryText').innerHTML = highlightKeyTerms(rawSummary);
+                showWordCount(rawSummary);
                 
+                // Flashcards
                 const pointsList = document.getElementById('pointsList');
                 pointsList.innerHTML = '';
                 if (data.key_points && data.key_points.length > 0) {
                     data.key_points.forEach((pt, index) => {
+                        const text = toText(pt);
                         pointsList.innerHTML += `
                             <div class="flashcard">
                                 <div class="flashcard-inner">
@@ -341,7 +563,7 @@
                                         <span class="flip-text">Hover to Reveal</span>
                                     </div>
                                     <div class="flashcard-back">
-                                        <p>${pt}</p>
+                                        <p>${text}</p>
                                     </div>
                                 </div>
                             </div>`;
@@ -350,16 +572,18 @@
                     pointsList.innerHTML = `<p style="color: var(--text-secondary);">No points extracted.</p>`;
                 }
 
+                // Timeline
                 const actionsList = document.getElementById('actionsList');
                 actionsList.innerHTML = '';
                 if (data.action_items && data.action_items.length > 0) {
                     data.action_items.forEach((item, index) => {
+                        const text = toText(item);
                         actionsList.innerHTML += `
                             <div class="timeline-item">
                                 <div class="timeline-dot"></div>
                                 <div class="timeline-content">
                                     <h4>Study Action ${index + 1}</h4>
-                                    <p>${item}</p>
+                                    <p>${text}</p>
                                 </div>
                             </div>`;
                     });
@@ -400,10 +624,8 @@
                     onclone: (clonedDoc) => {
                         const inners = clonedDoc.querySelectorAll('.flashcard-inner');
                         inners.forEach(inner => inner.style.transform = 'none');
-                        
                         const fronts = clonedDoc.querySelectorAll('.flashcard-front');
                         fronts.forEach(front => front.style.display = 'none');
-                        
                         const backs = clonedDoc.querySelectorAll('.flashcard-back');
                         backs.forEach(back => {
                             back.style.transform = 'none'; 
@@ -411,11 +633,8 @@
                             back.style.height = 'auto'; 
                             back.style.minHeight = '160px';
                         });
-                        
                         const cards = clonedDoc.querySelectorAll('.flashcard');
                         cards.forEach(card => card.style.height = 'auto');
-
-                        // 🔥 NEW: Expand transcription text box so it doesn't get cut off in PDF
                         const transText = clonedDoc.getElementById('transcriptionText');
                         if (transText) {
                             transText.style.maxHeight = 'none';
